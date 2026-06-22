@@ -7,6 +7,8 @@ import Contacts from '@/components/Contacts';
 import Pipeline from '@/components/Pipeline';
 import AIAssistant from '@/components/AIAssistant';
 import LeadGen from '@/components/LeadGen';
+import Tasks, { Task } from '@/components/Tasks';
+import Analytics from '@/components/Analytics';
 
 const initialContacts = [
   { id: 1, name: "Priya Sharma", company: "TechNova Inc", status: "hot", email: "priya@technova.io", initials: "PS", bg: "#EEEDFE", color: "#3C3489" },
@@ -24,19 +26,27 @@ const initialDeals = [
   { id: 5, name: "CloudEdge Pilot", amount: "₹9,000", stage: 3, winProb: 98 },
 ];
 
+const initialTasks: Task[] = [
+  { id: 1, title: "Follow up with Priya Sharma on license pricing", contactName: "Priya Sharma", dueDate: "2026-06-25", priority: "high", completed: false },
+  { id: 2, title: "Send welcome email to James Okafor", contactName: "James Okafor", dueDate: "2026-06-26", priority: "medium", completed: false },
+  { id: 3, title: "Qualify Sara Chen lead status", contactName: "Sara Chen", dueDate: "2026-06-30", priority: "low", completed: true },
+];
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [contacts, setContacts] = useState(initialContacts);
   const [deals, setDeals] = useState(initialDeals);
+  const [tasks, setTasks] = useState(initialTasks);
+  const [role, setRole] = useState('admin');
 
   return (
     <div className="shell">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} role={role} setRole={setRole} />
       
       <div className="main">
-        {activeTab === 'dashboard' && <Dashboard onAskAi={() => setActiveTab('ai')} />}
-        {activeTab === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} />}
-        {activeTab === 'pipeline' && <Pipeline deals={deals} setDeals={setDeals} />}
+        {activeTab === 'dashboard' && <Dashboard onAskAi={() => setActiveTab('ai')} tasks={tasks} />}
+        {activeTab === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} role={role} />}
+        {activeTab === 'pipeline' && <Pipeline deals={deals} setDeals={setDeals} role={role} />}
         {activeTab === 'ai' && <AIAssistant />}
         {activeTab === 'leadgen' && (
           <LeadGen onAddContact={(lead: { name: string; company: string; email: string }) => {
@@ -59,6 +69,8 @@ export default function Home() {
             }]);
           }} />
         )}
+        {activeTab === 'tasks' && <Tasks role={role} contacts={contacts} deals={deals} tasks={tasks} setTasks={setTasks} />}
+        {activeTab === 'analytics' && <Analytics role={role} deals={deals} contacts={contacts} />}
       </div>
     </div>
   );
