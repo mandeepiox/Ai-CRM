@@ -15,7 +15,7 @@ interface Contact {
   color: string;
 }
 
-export default function Contacts({ contacts, setContacts }: { contacts: Contact[], setContacts: React.Dispatch<React.SetStateAction<Contact[]>> }) {
+export default function Contacts({ contacts, setContacts, role }: { contacts: Contact[], setContacts: React.Dispatch<React.SetStateAction<Contact[]>>, role: string }) {
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -100,7 +100,7 @@ export default function Contacts({ contacts, setContacts }: { contacts: Contact[
     <div id="tab-contacts" className="panel active" style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div className="topbar">
         <h2>Contacts</h2>
-        <button className="btn btn-primary" onClick={handleOpenNew}>
+        <button className="btn btn-primary" onClick={handleOpenNew} disabled={role === 'viewer'} title={role === 'viewer' ? "Viewer role cannot add contacts" : "Add contact"}>
           <Plus size={16} />
           Add contact
         </button>
@@ -139,11 +139,11 @@ export default function Contacts({ contacts, setContacts }: { contacts: Contact[
                     <button className="btn" style={{ padding: '6px', border: 'none', boxShadow: 'none' }} onClick={() => handleDraftEmail(c)} title="Draft AI Email">
                       <Mail size={14} color="var(--purple)" />
                     </button>
-                    <button className="btn" style={{ padding: '6px', border: 'none', boxShadow: 'none' }} onClick={() => handleOpenEdit(c)} title="Edit Contact">
-                      <Edit2 size={14} color="var(--text-tertiary)" />
+                    <button className="btn" style={{ padding: '6px', border: 'none', boxShadow: 'none' }} onClick={() => handleOpenEdit(c)} disabled={role === 'viewer'} title={role === 'viewer' ? "Viewer role cannot edit contacts" : "Edit Contact"}>
+                      <Edit2 size={14} color={role === 'viewer' ? "var(--text-tertiary)" : "var(--text-tertiary)"} />
                     </button>
-                    <button className="btn" style={{ padding: '6px', border: 'none', boxShadow: 'none' }} onClick={() => handleDeleteContact(c.id)} title="Delete Contact">
-                      <Trash2 size={14} color="#ef4444" />
+                    <button className="btn" style={{ padding: '6px', border: 'none', boxShadow: 'none' }} onClick={() => handleDeleteContact(c.id)} disabled={role === 'viewer'} title={role === 'viewer' ? "Viewer role cannot delete contacts" : "Delete Contact"}>
+                      <Trash2 size={14} color={role === 'viewer' ? "var(--text-tertiary)" : "#ef4444"} />
                     </button>
                   </td>
                 </tr>

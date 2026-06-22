@@ -15,7 +15,7 @@ interface Deal {
   winProb: number;
 }
 
-export default function Pipeline({ deals, setDeals }: { deals: Deal[], setDeals: React.Dispatch<React.SetStateAction<Deal[]>> }) {
+export default function Pipeline({ deals, setDeals, role }: { deals: Deal[], setDeals: React.Dispatch<React.SetStateAction<Deal[]>>, role: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dealForm, setDealForm] = useState({ name: '', amount: '' });
   const [editingDealId, setEditingDealId] = useState<number | null>(null);
@@ -81,7 +81,7 @@ export default function Pipeline({ deals, setDeals }: { deals: Deal[], setDeals:
     <div id="tab-pipeline" className="panel active" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div className="topbar">
         <h2>Pipeline</h2>
-        <button className="btn btn-primary" onClick={handleOpenNewDeal}>
+        <button className="btn btn-primary" onClick={handleOpenNewDeal} disabled={role === 'viewer'} title={role === 'viewer' ? "Viewer role cannot add deals" : "New deal"}>
           <Plus size={16} />
           New deal
         </button>
@@ -103,8 +103,11 @@ export default function Pipeline({ deals, setDeals }: { deals: Deal[], setDeals:
                 <div 
                   key={d.id} 
                   className="deal-card"
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, d.id)}
+                  draggable={role !== 'viewer'}
+                  onDragStart={(e) => {
+                    if (role === 'viewer') return;
+                    handleDragStart(e, d.id);
+                  }}
                   style={d.winProb >= 85 ? { borderColor: '#f97316', boxShadow: '0 0 10px rgba(249, 115, 22, 0.1)' } : {}}
                 >
                   <div className="deal-name" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -120,13 +123,13 @@ export default function Pipeline({ deals, setDeals }: { deals: Deal[], setDeals:
                   <div className="deal-tag" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginTop: '8px' }}>
                     <span className={`tag ${stageTagClass[i]}`}>{s}</span>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <button className="btn" style={{ padding: '4px', border: 'none', boxShadow: 'none' }} onClick={() => handleOpenEditDeal(d)} title="Edit Deal">
-                        <Edit2 size={14} color="var(--text-tertiary)" />
+                      <button className="btn" style={{ padding: '4px', border: 'none', boxShadow: 'none' }} onClick={() => handleOpenEditDeal(d)} disabled={role === 'viewer'} title={role === 'viewer' ? "Viewer role cannot edit deals" : "Edit Deal"}>
+                        <Edit2 size={14} color={role === 'viewer' ? "var(--text-tertiary)" : "var(--text-tertiary)"} />
                       </button>
-                      <button className="btn" style={{ padding: '4px', border: 'none', boxShadow: 'none' }} onClick={() => handleDeleteDeal(d.id)} title="Delete Deal">
-                        <Trash2 size={14} color="#ef4444" />
+                      <button className="btn" style={{ padding: '4px', border: 'none', boxShadow: 'none' }} onClick={() => handleDeleteDeal(d.id)} disabled={role === 'viewer'} title={role === 'viewer' ? "Viewer role cannot delete deals" : "Delete Deal"}>
+                        <Trash2 size={14} color={role === 'viewer' ? "var(--text-tertiary)" : "#ef4444"} />
                       </button>
-                      <GripVertical size={14} style={{ color: 'var(--text-tertiary)', cursor: 'grab', marginLeft: '4px' }} />
+                      {role !== 'viewer' && <GripVertical size={14} style={{ color: 'var(--text-tertiary)', cursor: 'grab', marginLeft: '4px' }} />}
                     </div>
                   </div>
                 </div>

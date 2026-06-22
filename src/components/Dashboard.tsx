@@ -1,13 +1,21 @@
 'use client';
 
 import React from 'react';
-import { Users, IndianRupee, Briefcase, Sparkles, Activity } from 'lucide-react';
+import { Users, IndianRupee, Briefcase, Sparkles, Activity, CheckSquare } from 'lucide-react';
+
+interface Task {
+  id: number;
+  completed: boolean;
+}
 
 interface DashboardProps {
   onAskAi: () => void;
+  tasks: Task[];
 }
 
-export default function Dashboard({ onAskAi }: DashboardProps) {
+export default function Dashboard({ onAskAi, tasks }: DashboardProps) {
+  const pendingTasksCount = tasks.filter(t => !t.completed).length;
+
   const activities = [
     { text: "Priya Sharma viewed proposal", time: "2h ago", dot: true },
     { text: "New contact: James Okafor added", time: "5h ago", dot: true },
@@ -22,7 +30,7 @@ export default function Dashboard({ onAskAi }: DashboardProps) {
         <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>April 2026</span>
       </div>
       <div className="content">
-        <div className="stat-grid">
+        <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
           <div className="stat">
             <div className="stat-header">
               <div className="stat-icon purple"><Users size={18} /></div>
@@ -46,6 +54,13 @@ export default function Dashboard({ onAskAi }: DashboardProps) {
             </div>
             <div className="stat-num" style={{ color: 'var(--blue-text)' }}>6</div>
             <div className="stat-label">Active deals</div>
+          </div>
+          <div className="stat">
+            <div className="stat-header">
+              <div className="stat-icon purple" style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}><CheckSquare size={18} /></div>
+            </div>
+            <div className="stat-num" style={{ color: 'var(--purple-text)' }}>{pendingTasksCount}</div>
+            <div className="stat-label">Pending tasks</div>
           </div>
         </div>
 
