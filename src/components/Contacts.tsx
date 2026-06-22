@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { Plus, Edit2, Mail, Loader2, Copy, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Mail, Loader2, Copy, Trash2, MessageSquare } from 'lucide-react';
 
-interface Contact {
+export interface Contact {
   id: number;
   name: string;
   company: string;
@@ -23,10 +23,42 @@ export default function Contacts({ contacts, setContacts, role }: { contacts: Co
   
   const [emailDraft, setEmailDraft] = useState({ isOpen: false, text: '', isLoading: false, contactName: '' });
 
-  const filteredContacts = contacts.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.company.toLowerCase().includes(search.toLowerCase())
-  );
+  // Communication logs state (Section 11)
+  const [logsModal, setLogsModal] = useState({ isOpen: false, contactId: 0, contactName: '' });
+  const [newLog, setNewLog] = useState({ type: 'Call', note: '' });
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [interactionLogs, setInteractionLogs] = useState<Record<number, { type: string, note: string, date: string }[]>>({
+    1: [
+      { type: "Call", note: "Priya requested a pricing sheet. Sent over email.", date: "2026-06-22" },
+      { type: "Email", note: "Follow-up email detailing API capabilities.", date: "2026-06-21" }
+    ],
+    2: [
+      { type: "Meeting", note: "Introductory demo call. Rahul is interested in team package.", date: "2026-06-20" }
+    ]
+  });
+
+  const filteredContacts = contacts.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.company.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleOpenLogs = (c: Contact) => {
+    setLogsModal({ isOpen: true, contactId: c.id, contactName: c.name });
+  };
+
+  const handleSaveLog = () => {
+    if (!newLog.note) return;
+    const currentLogs = interactionLogs[logsModal.contactId] || [];
+    setInteractionLogs({
+      ...interactionLogs,
+      [logsModal.contactId]: [
+        { type: newLog.type, note: newLog.note, date: new Date().toISOString().split('T')[0] },
+        ...currentLogs
+      ]
+    });
+    setNewLog({ type: 'Call', note: '' });
+  };
 
   const handleOpenNew = () => {
     setEditingId(null);
@@ -112,6 +144,25 @@ export default function Contacts({ contacts, setContacts, role }: { contacts: Co
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          {['all', 'hot', 'warm', 'cold', 'won'].map(f => (
+            <button 
+              key={f} 
+              className="btn" 
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: '12px', 
+                borderRadius: '6px',
+                background: statusFilter === f ? 'var(--purple-bg)' : 'var(--bg-primary)',
+                color: statusFilter === f ? 'var(--purple-text)' : 'var(--text-secondary)',
+                borderColor: statusFilter === f ? 'var(--purple)' : 'var(--border)'
+              }}
+              onClick={() => setStatusFilter(f)}
+            >
+              {f.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <div className="contact-table-wrapper">
           <table className="contact-table">
             <thead>
@@ -136,6 +187,9 @@ export default function Contacts({ contacts, setContacts, role }: { contacts: Co
                   <td><span className={`tag tag-${c.status}`}>{c.status}</span></td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{c.email}</td>
                   <td style={{ textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+                    <button className="btn" style={{ padding: '6px', border: 'none', boxShadow: 'none' }} onClick={() => handleOpenLogs(c)} title="Communication Logs">
+                      <MessageSquare size={14} color="var(--purple)" />
+                    </button>
                     <button className="btn" style={{ padding: '6px', border: 'none', boxShadow: 'none' }} onClick={() => handleDraftEmail(c)} title="Draft AI Email">
                       <Mail size={14} color="var(--purple)" />
                     </button>
@@ -213,6 +267,61 @@ export default function Contacts({ contacts, setContacts, role }: { contacts: Co
             <Copy size={16} />
             Copy to Clipboard
           </button>
+        </div>
+      </Modal>
+
+      {/* Communication Logs Modal (Section 11) */}
+      <Modal isOpen={logsModal.isOpen} onClose={() => setLogsModal({ ...logsModal, isOpen: false })} title={`Communication Logs: ${logsModal.contactName}`}>
+        <div className="modal-body" style={{ maxHeight: '350px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          
+          <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '8px', color: 'var(--text-primary)' }}>Log New Interaction</div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              <select 
+                value={newLog.type} 
+                onChange={e => setNewLog({ ...newLog, type: e.target.value })}
+                className="form-input" 
+                style={{ flex: '0 0 90px', fontSize: '12px', padding: '4px', background: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+              >
+                <option value="Call">Call</option>
+                <option value="Meeting">Meeting</option>
+                <option value="Email">Email</option>
+              </select>
+              <input 
+                placeholder="Details of interaction..." 
+                value={newLog.note} 
+                onChange={e => setNewLog({ ...newLog, note: e.target.value })}
+                className="form-input"
+                style={{ flex: 1, fontSize: '12px', padding: '4px 8px' }}
+                onKeyDown={e => e.key === 'Enter' && handleSaveLog()}
+              />
+              <button className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '12px' }} onClick={handleSaveLog} disabled={!newLog.note}>
+                Log
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {(interactionLogs[logsModal.contactId] || []).length === 0 ? (
+              <div style={{ color: 'var(--text-secondary)', textAlign: 'center', fontSize: '13px', padding: '12px' }}>
+                No interaction logs recorded yet.
+              </div>
+            ) : (
+              (interactionLogs[logsModal.contactId] || []).map((log, i) => (
+                <div key={i} style={{ padding: '10px', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '11px', fontWeight: 600 }}>
+                    <span className={`tag tag-${log.type === 'Call' ? 'hot' : log.type === 'Meeting' ? 'warm' : 'cold'}`} style={{ padding: '2px 6px', fontSize: '10px' }}>{log.type}</span>
+                    <span style={{ color: 'var(--text-tertiary)' }}>{log.date}</span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.4 }}>{log.note}</div>
+                </div>
+              ))
+            )}
+          </div>
+
+        </div>
+        <div className="modal-footer">
+          <button className="btn" onClick={() => setLogsModal({ ...logsModal, isOpen: false })}>Close</button>
         </div>
       </Modal>
     </div>

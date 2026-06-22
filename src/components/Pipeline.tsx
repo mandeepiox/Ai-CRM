@@ -7,7 +7,7 @@ import Modal from './Modal';
 const stages = ["Lead", "Proposal", "Negotiation", "Closed"];
 const stageTagClass = ["tag-cold", "tag-warm", "tag-hot", "tag-won"];
 
-interface Deal {
+export interface Deal {
   id: number;
   name: string;
   amount: string;
